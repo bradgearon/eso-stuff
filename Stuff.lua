@@ -18,7 +18,6 @@ function stackItem(fromBag, fromSlot, toBag, toSlot, quantity, name)
     return result
 end
 
-
 function insertItem(itemTable, bag, slot, stack)
     local item = {}
     item.bag = bag
@@ -26,6 +25,92 @@ function insertItem(itemTable, bag, slot, stack)
     item.stack = stack
     table.insert(itemTable, item)
 end
+
+
+function moveItem(fromItem, toItem, maxStack, itemName)
+    -- d(key .. inspect(item))
+    -- the most we can move
+    local quantity = math.min(maxStack - toItem.stack, fromItem.stack)
+    -- if we can move any
+    if (quantity > 0) then
+        d(" moving " .. quantity .. " " .. itemName .. "from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
+        -- move them
+        result = stackItem(fromItem.bag, fromItem.slot, toItem.bag, toItem.slot, quantity, itemName)
+        if (result) then
+            fromItem.stack = fromItem.stack - quantity
+            toItem.stack = toItem.stack + quantity
+            d("moved " .. quantity .. " " .. itemName .. "from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
+        end
+    end
+end
+
+function sortStack (first, second)
+    return first.stack > second.stack
+end
+
+function reverseStack (first, second)
+    return first.stack < second.stack
+end
+
+
+function moveItems(bags, fromBag, toBag)
+    d("call")
+    for itemName, bagItem in pairs(bags) do
+        local fromItems = bagItem[fromBag]
+        local toItems = bagItem[toBag]
+        loopItems(fromItems, toItems, bagItem.maxStack, itemName)
+    end
+end
+
+function keepMovingItems(fromItems, toItems, bagItem, itemName)
+    local maxIterations = 15
+    local iterations = 1
+    while iterations < maxIterations and checkItems(fromItems, toItems, bagItem.maxStack, itemName) do
+        loopItems(fromItems, toItems, bagItem.maxStack, itemName)
+        table.sort(toItems, sortStack)
+        table.sort(fromItems, reverseStack)
+        iterations = iterations + 1
+    end
+end
+
+function checkItems(fromItems, toItems, maxStack)
+    local itemsLeft = false
+    for toIndex, toItem in ipairs(toItems) do
+        if(maxStack - toItem.stack > 0) then
+            for fromIndex, fromItem in ipairs(fromItems) do
+                local sameBag = fromItem.bag == toItem.bag
+                local sameSlot = fromItem.slot == toItem.slot
+                itemsLeft = not (sameBag and sameSlot) and fromItem.stack > 0
+                if(itemsLeft) then
+                    break
+                end
+            end
+        end
+    end
+    return itemsLeft
+end
+
+function loopItems(fromItems, toItems, maxStack, itemName)
+    table.sort(toItems, sortStack)
+    table.sort(fromItems, reverseStack)
+
+    for fromIndex, fromItem in ipairs(fromItems) do
+        if (fromItem.stack > 0 and fromItem.stack < maxStack) then
+            for toIndex, toItem in ipairs(toItems) do
+                if(toItem.stack > 0 and toItem.stack < maxStack) then
+                    local sameBag = fromItem.bag == toItem.bag
+                    local sameSlot = fromItem.slot == toItem.slot
+                    if (not (sameBag and sameSlot)) then
+                        moveItem(fromItem, toItem, maxStack, itemName)
+                        table.sort(toItems, sortStack)
+                        table.sort(fromItems, reverseStack)
+                    end
+                end
+            end
+        end
+    end
+end
+
 
 function HandleOpenBank(eventCode, addOnName, isManual)
     local maxBags = GetMaxBags()
@@ -42,46 +127,39 @@ function HandleOpenBank(eventCode, addOnName, isManual)
             itemName = GetItemName(bag, slot)
 
             if (stack > 0 and itemName ~= nil) then
-                -- right now this only works with the bank (will add support for ui based
-                -- guild bank deposit / join
-                local isBank = BAG_BANK == bag
+                -- right now this only works with the bank
+                -- will add support for ui based guild bank deposit / join
                 bagItem = bags[itemName] or {}
-                bagItem.bank = bagItem.bank or {}
-                bagItem.item = bagItem.item or {}
+
+                bagItem[BAG_BANK] = bagItem[BAG_BANK] or {}
+                bagItem[BAG_BACKPACK] = bagItem[BAG_BACKPACK] or {}
 
                 bagItem.maxStack = maxStack
                 bagItem.name = itemName
 
-                local itemTable = isBank and bagItem.bank or bagItem.item
+                local itemTable = bagItem[bag]
 
                 -- insert the slot item in the appropriate table
                 insertItem(itemTable, bag, slot, stack)
-
                 bags[itemName] = bagItem
-
-                if (not isManual and isBank) then
-                    for key, item in pairs(bagItem.item) do
-                        -- the most we can move
-                        local quantity = math.min(maxStack - stack, item.stack)
-                        -- if we can move any
-                        if (quantity > 0) then
-                            d("moving " .. quantity .. " " .. itemName .. " to bagId: " .. bag)
-                            -- move them
-                            result = stackItem(item.bag, item.slot, bag, slot, quantity, itemName)
-                            if(result) then
-                                item.stack = item.stack - quantity
-                                d("moved " .. quantity .. " " .. itemName .. " to bagId: " .. bag)
-                            end
-                        end
-                    end
-                end
             end
         end
     end
+
+    if (not isManual) then
+        -- consolidate source
+        moveItems(bags, BAG_BACKPACK, BAG_BACKPACK)
+        -- consolidate destination
+        moveItems(bags, BAG_BANK, BAG_BANK)
+        -- move to bank
+        moveItems(bags, BAG_BACKPACK, BAG_BANK)
+    end
 end
 
+
 function HandleAddOnLoaded(eventCode, addOnName)
-    if addOnName ~= STUFF_NAME then return end
+    if addOnName ~= STUFF_NAME then return
+    end
     Stuff.Defaults = {}
 
     Stuff.Saved = ZO_SavedVars:New(STUFF_NAME, 5, nil, Stuff.Defaults, nil)
