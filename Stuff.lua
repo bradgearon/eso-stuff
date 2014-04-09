@@ -33,13 +33,13 @@ function moveItem(fromItem, toItem, maxStack, itemName)
     local quantity = math.min(maxStack - toItem.stack, fromItem.stack)
     -- if we can move any
     if (quantity > 0) then
-        d(" moving " .. quantity .. " " .. itemName .. "from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
+        d(" moving " .. quantity .. " " .. itemName .. " from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
         -- move them
         result = stackItem(fromItem.bag, fromItem.slot, toItem.bag, toItem.slot, quantity, itemName)
         if (result) then
             fromItem.stack = fromItem.stack - quantity
             toItem.stack = toItem.stack + quantity
-            d("moved " .. quantity .. " " .. itemName .. "from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
+            d("moved " .. quantity .. " " .. itemName .. " from bag: " .. fromItem.bag .. " slot: " .. fromItem.slot .. " to bag: " .. toItem.bag .. " slot: " .. toItem.slot .. " with: " .. toItem.stack)
         end
     end
 end
@@ -54,7 +54,6 @@ end
 
 
 function moveItems(bags, fromBag, toBag)
-    d("call")
     for itemName, bagItem in pairs(bags) do
         local fromItems = bagItem[fromBag]
         local toItems = bagItem[toBag]
