@@ -62,34 +62,6 @@ function moveItems(bags, fromBag, toBag)
     end
 end
 
-function keepMovingItems(fromItems, toItems, bagItem, itemName)
-    local maxIterations = 15
-    local iterations = 1
-    while iterations < maxIterations and checkItems(fromItems, toItems, bagItem.maxStack, itemName) do
-        loopItems(fromItems, toItems, bagItem.maxStack, itemName)
-        table.sort(toItems, sortStack)
-        table.sort(fromItems, reverseStack)
-        iterations = iterations + 1
-    end
-end
-
-function checkItems(fromItems, toItems, maxStack)
-    local itemsLeft = false
-    for toIndex, toItem in ipairs(toItems) do
-        if(maxStack - toItem.stack > 0) then
-            for fromIndex, fromItem in ipairs(fromItems) do
-                local sameBag = fromItem.bag == toItem.bag
-                local sameSlot = fromItem.slot == toItem.slot
-                itemsLeft = not (sameBag and sameSlot) and fromItem.stack > 0
-                if(itemsLeft) then
-                    break
-                end
-            end
-        end
-    end
-    return itemsLeft
-end
-
 function loopItems(fromItems, toItems, maxStack, itemName)
     table.sort(toItems, sortStack)
     table.sort(fromItems, reverseStack)

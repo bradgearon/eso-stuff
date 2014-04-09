@@ -71,7 +71,7 @@
       <file leaf-file-name="Stuff.lua" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Stuff.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="63" column="6" selection-start="2096" selection-end="2096" vertical-scroll-proportion="0.19343066">
+            <state line="63" column="0" selection-start="2096" selection-end="2096" vertical-scroll-proportion="0.620438">
               <folding />
             </state>
           </provider>
@@ -537,7 +537,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Stuff.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="63" column="6" selection-start="2096" selection-end="2096" vertical-scroll-proportion="0.19343066">
+        <state line="63" column="0" selection-start="2096" selection-end="2096" vertical-scroll-proportion="0.620438">
           <folding />
         </state>
       </provider>
