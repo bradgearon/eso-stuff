@@ -1,0 +1,11 @@
+## Title: Bank Stuffer
+## Author: bradgearon
+## Version: 1.01
+## APIVersion: 100003
+
+## SavedVariables: BankStuffer
+
+Lib\LibStub\LibStub.lua
+Lib\inspect\inspect.lua
+
+BankStuffer.lua
